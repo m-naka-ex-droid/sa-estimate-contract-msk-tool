@@ -1248,15 +1248,15 @@ function generateStampPng(name, size) {
     ctx.font = Math.round(size * 0.72) + "px 'Yuji Syuku', serif";
     ctx.fillText(chars[0], 0, 0);
   } else if (chars.length === 2) {
-    var fs = Math.round(size * 0.52);
+    var fs = Math.round(size * 0.42);
     ctx.font = fs + "px 'Yuji Syuku', serif";
-    ctx.fillText(chars[0], 0, -fs * 0.46);
-    ctx.fillText(chars[1], 0, fs * 0.46);
+    ctx.fillText(chars[0], 0, -fs * 0.52);
+    ctx.fillText(chars[1], 0, fs * 0.42);
   } else {
     var fs = Math.round(size * 0.42);
     ctx.font = fs + "px 'Yuji Syuku', serif";
     for (var gi = 0; gi < chars.length; gi++) {
-      var yy = (gi - (chars.length - 1) / 2) * fs * 0.9;
+      var yy = (gi - (chars.length - 1) / 2) * fs * 0.80;
       ctx.fillText(chars[gi], 0, yy);
     }
   }
