@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SalonAnswer 見積・契約書 生成ツール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=Yuji+Syuku&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap');
 
 :root {
   --bg: #f5f3f0;
@@ -219,6 +221,9 @@ body {
 </style>
 </head>
 <body>
+
+<!-- Yuji Syukuフォント強制読み込み用（印鑑用、よく使われる姓の漢字をカバー） -->
+<span id="yujiFontPreloader" aria-hidden="true" style="font-family:'Yuji Syuku', serif; font-size:1px; position:absolute; left:-9999px; top:-9999px; visibility:hidden; opacity:0;">佐藤鈴木高橋田中伊藤渡辺山本中村小林加藤吉田山田佐々木山口松本井上木村林斉藤清水山崎森池田橋本阿部石川山下中島石井小川前田岡田長谷川藤田後藤近藤村上遠藤青木坂本福田太郎花子一二三四五六七八九十</span>
 
 <div id="lockScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;display:flex;align-items:center;justify-content:center;z-index:9999;">
   <div style="background:#16213e;padding:40px;border-radius:12px;text-align:center;max-width:360px;width:90%;">
@@ -1240,16 +1245,16 @@ function generateStampPng(name, size) {
   ctx.translate(cx, cy);
   ctx.scale(1.15, 1);
   if (chars.length === 1) {
-    ctx.font = "bold " + Math.round(size * 0.72) + "px 'HGP行書体', 'HG行書体', serif";
+    ctx.font = Math.round(size * 0.72) + "px 'Yuji Syuku', serif";
     ctx.fillText(chars[0], 0, 0);
   } else if (chars.length === 2) {
     var fs = Math.round(size * 0.52);
-    ctx.font = "bold " + fs + "px 'HGP行書体', 'HG行書体', serif";
+    ctx.font = fs + "px 'Yuji Syuku', serif";
     ctx.fillText(chars[0], 0, -fs * 0.46);
     ctx.fillText(chars[1], 0, fs * 0.46);
   } else {
     var fs = Math.round(size * 0.42);
-    ctx.font = "bold " + fs + "px 'HGP行書体', 'HG行書体', serif";
+    ctx.font = fs + "px 'Yuji Syuku', serif";
     for (var gi = 0; gi < chars.length; gi++) {
       var yy = (gi - (chars.length - 1) / 2) * fs * 0.9;
       ctx.fillText(chars[gi], 0, yy);
@@ -1833,6 +1838,26 @@ async function generateEstimate(customerName, estimateNo, docDate, salesPerson) 
     var parts = salesPerson.split(/[\s　]+/);
     salesSurname = parts[0];
   }
+  // Yuji Syukuフォントの読み込みを保証（スマホでも印影書体を統一するため）
+  if (salesSurname || inspectorName) {
+    try {
+      if (document.fonts && document.fonts.load) {
+        // 実際に描画する漢字を含めて複数サイズでロード（日本語subsetの取得を促進）
+        var loadText = salesSurname + inspectorName;
+        await Promise.all([
+          document.fonts.load("72px 'Yuji Syuku'", loadText),
+          document.fonts.load("62px 'Yuji Syuku'", loadText),
+          document.fonts.load("50px 'Yuji Syuku'", loadText)
+        ]);
+        await document.fonts.ready;
+        // 実際にフォントが使用可能か確認
+        var loaded = document.fonts.check("72px 'Yuji Syuku'");
+        console.log("Yuji Syuku loaded:", loaded);
+      }
+    } catch (e) {
+      console.warn("フォント読み込みエラー:", e);
+    }
+  }
   if (salesSurname) {
     var stamp1 = generateStampPng(salesSurname, 120);
     zipFix.file("xl/media/image3.png", dataUrlToUint8(stamp1));
@@ -2249,7 +2274,7 @@ async function generateContract(customerName, applicationNo, salesPerson) {
 
   var finalBuf = await zipFix.generateAsync({ type: "arraybuffer" });
   saveAs(new Blob([finalBuf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
-    "【" + (customerName || "___") + "御中】SalonAnswer電子契約.xlsx");
+    "【" + (customerName || "___") + "御中】SalonAnswer申込内容.xlsx");
 }
 
 </script>
